@@ -1,0 +1,26 @@
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Str;
+
+class Category extends Model
+{
+    protected $fillable = ['name', 'slug', 'icon'];
+
+    protected static function booted(): void
+    {
+        static::creating(function (Category $cat) {
+            if (empty($cat->slug)) {
+                $cat->slug = Str::slug($cat->name);
+            }
+        });
+    }
+
+    public function products(): HasMany
+    {
+        return $this->hasMany(Product::class);
+    }
+}
