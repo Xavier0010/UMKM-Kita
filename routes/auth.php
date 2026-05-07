@@ -14,7 +14,8 @@ use Illuminate\Support\Facades\Route;
 Route::middleware('guest')->group(function () {
     Route::get('authentication', \App\Livewire\Auth::class)->name('authentication');
     Route::get('login', function() { return redirect()->route('authentication', ['tab' => 'login']); })->name('login');
-    Route::get('register', function() { return redirect()->route('authentication', ['tab' => 'register']); })->name('register');
+    Route::get('signup', function() { return redirect()->route('authentication', ['tab' => 'signup']); })->name('signup');
+    Route::get('register', function() { return redirect()->route('signup'); });
 
     Route::get('forgot-password', [PasswordResetLinkController::class, 'create'])
         ->name('password.request');

@@ -34,7 +34,7 @@ class Catalog extends Component
     public function logout()
     {
         Auth::logout();
-        return redirect()->route('authentication', ['tab' => 'login']);
+        return redirect()->to('/');
     }
 
     public function render()
@@ -57,9 +57,15 @@ class Catalog extends Component
                   ->select('products.*', 'categories.name as kategori_name');
         }
 
-        $all_produk = $query->orderBy('products.id', 'desc')->get();
+        $all_produk = $query->orderBy('products.id', 'desc')->get()->map(function($p) {
+            $p->image_url = $p->main_image ? asset('foto_produk/'.$p->main_image) : 'https://placehold.co/400x220/e2e8f0/64748b?text=Foto+Produk';
+            return $p;
+        });
         $kategori_list = DB::table('categories')->pluck('name');
-        $rekomendasi = DB::table('products')->inRandomOrder()->limit(3)->get();
+        $rekomendasi = DB::table('products')->inRandomOrder()->limit(3)->get()->map(function($p) {
+            $p->image_url = $p->main_image ? asset('foto_produk/'.$p->main_image) : 'https://placehold.co/400x220/e2e8f0/64748b?text=Foto+Produk';
+            return $p;
+        });
         $total_produk = DB::table('products')->count();
         $user = Auth::user() ?? (object) ['name' => 'Guest', 'role' => 'user'];
 

@@ -17,7 +17,14 @@
                 <div class="user-avatar">{{ strtoupper(substr($user->name, 0, 1)) }}</div>
                 <div class="user-details">
                     <span class="user-name">{{ $user->name }}</span>
-                    <span class="user-role-badge role-{{ strtolower($user->role ?? 'user') }}">{{ ucfirst($user->role ?? 'User') }}</span>
+                    @php
+                        $roleName = match(strtolower($user->role ?? 'user')) {
+                            'buyer' => 'Pembeli',
+                            'seller' => 'Penjual',
+                            default => ucfirst($user->role ?? 'User')
+                        };
+                    @endphp
+                    <span class="user-role-badge role-{{ strtolower($user->role ?? 'user') }}">{{ $roleName }}</span>
                 </div>
             </div>
             <button wire:click="logout" class="btn-logout" title="Logout" onclick="return confirm('Yakin ingin keluar?')">
@@ -25,6 +32,7 @@
             </button>
             @else
             <a href="{{ route('authentication', ['tab' => 'login']) }}" class="btn-cta" style="padding: 8px 16px;">Login</a>
+            <a href="{{ route('authentication', ['tab' => 'signup']) }}" class="btn-outline">Daftar</a>
             @endif
         </div>
 
@@ -45,6 +53,7 @@
     @else
     <div class="mobile-user">
         <a href="{{ route('authentication', ['tab' => 'login']) }}" class="btn-logout-mobile" style="color:#2563eb; background:#dbeafe;">Login</a>
+        <a href="{{ route('authentication', ['tab' => 'signup']) }}" class="btn-logout-mobile" style="color:#2563eb; background:#fff; border: 1.5px solid #2563eb;">Daftar</a>
     </div>
     @endif
 </div>
@@ -56,9 +65,15 @@
     <!-- ============================================ -->
     <section class="welcome-banner">
         <div class="welcome-text">
-            <span class="welcome-badge">🎉 Selamat Datang</span>
-            <h1>Halo, {{ $user->name }}!</h1>
-            <p>Temukan produk UMKM lokal terbaik. Pesan langsung via WhatsApp — mudah dan cepat.</p>
+            @auth
+                <span class="welcome-badge">🎉 Selamat Datang Kembali</span>
+                <h1>Halo, {{ $user->name }}!</h1>
+                <p>Siap untuk belanja lagi hari ini? Temukan produk UMKM favoritmu.</p>
+            @else
+                <span class="welcome-badge">👋 Halo Pengunjung</span>
+                <h1>Temukan Produk UMKM Terbaik</h1>
+                <p>Dukung produk lokal dengan berbelanja langsung dari pengusaha UMKM pilihan kami.</p>
+            @endauth
             <a href="#katalog" class="btn-cta">Jelajahi Produk</a>
         </div>
         <div class="welcome-illustration">
@@ -76,34 +91,65 @@
     <!-- ============================================ -->
     <section class="summary-section">
         <div class="summary-grid">
-            <div class="summary-card card-blue">
-                <div class="summary-icon">📦</div>
-                <div class="summary-info">
-                    <h3>0</h3>
-                    <p>Pesanan</p>
+            @auth
+                <div class="summary-card card-blue">
+                    <div class="summary-icon">📦</div>
+                    <div class="summary-info">
+                        <h3>0</h3>
+                        <p>Pesanan</p>
+                    </div>
                 </div>
-            </div>
-            <div class="summary-card card-pink">
-                <div class="summary-icon">❤️</div>
-                <div class="summary-info">
-                    <h3>0</h3>
-                    <p>Wishlist</p>
+                <div class="summary-card card-pink">
+                    <div class="summary-icon">❤️</div>
+                    <div class="summary-info">
+                        <h3>0</h3>
+                        <p>Wishlist</p>
+                    </div>
                 </div>
-            </div>
-            <div class="summary-card card-green">
-                <div class="summary-icon">💰</div>
-                <div class="summary-info">
-                    <h3>Rp 0</h3>
-                    <p>Total Belanja</p>
+                <div class="summary-card card-green">
+                    <div class="summary-icon">💰</div>
+                    <div class="summary-info">
+                        <h3>Rp 0</h3>
+                        <p>Total Belanja</p>
+                    </div>
                 </div>
-            </div>
-            <div class="summary-card card-orange">
-                <div class="summary-icon">🏷️</div>
-                <div class="summary-info">
-                    <h3>{{ $total_produk }}</h3>
-                    <p>Produk Tersedia</p>
+                <div class="summary-card card-orange">
+                    <div class="summary-icon">🏷️</div>
+                    <div class="summary-info">
+                        <h3>{{ $total_produk }}</h3>
+                        <p>Produk Tersedia</p>
+                    </div>
                 </div>
-            </div>
+            @else
+                <div class="summary-card card-blue">
+                    <div class="summary-icon">🛍️</div>
+                    <div class="summary-info">
+                        <h3>{{ $total_produk }}</h3>
+                        <p>Total Produk</p>
+                    </div>
+                </div>
+                <div class="summary-card card-pink">
+                    <div class="summary-icon">🏪</div>
+                    <div class="summary-info">
+                        <h3>50+</h3>
+                        <p>Mitra UMKM</p>
+                    </div>
+                </div>
+                <div class="summary-card card-green">
+                    <div class="summary-icon">✅</div>
+                    <div class="summary-info">
+                        <h3>Terverifikasi</h3>
+                        <p>Produk Pilihan</p>
+                    </div>
+                </div>
+                <div class="summary-card card-orange">
+                    <div class="summary-icon">🚀</div>
+                    <div class="summary-info">
+                        <h3>Mudah</h3>
+                        <p>Pesan via WA</p>
+                    </div>
+                </div>
+            @endauth
         </div>
     </section>
 
@@ -116,7 +162,7 @@
         <div class="rekomendasi-grid">
             @foreach($rekomendasi as $rec)
             <div class="rekom-card">
-                <img src="{{ $rec->main_image ? asset('storage/'.$rec->main_image) : asset('assets/images/'.$rec->id.'.jpg') }}" 
+                <img src="{{ $rec->image_url }}" 
                      alt="{{ $rec->name }}"
                      onerror="this.src='https://placehold.co/400x220/e2e8f0/64748b?text=Foto+Produk'">
                 <div class="rekom-info">
@@ -154,7 +200,7 @@
             @foreach($all_produk as $row)
             <div class="card" id="produk-{{ $row->id }}">
                 <div class="card-image-wrapper">
-                    <img src="{{ $row->main_image ? asset('storage/'.$row->main_image) : asset('assets/images/'.$row->id.'.jpg') }}" 
+                    <img src="{{ $row->image_url }}" 
                          alt="{{ $row->name }}"
                          onerror="this.src='https://placehold.co/400x220/e2e8f0/64748b?text=Foto+Produk'">
                     <span class="card-badge">{{ $row->kategori_name ?? 'Umum' }}</span>

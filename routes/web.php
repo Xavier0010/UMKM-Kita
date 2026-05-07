@@ -2,7 +2,6 @@
 
 use Illuminate\Support\Facades\Route;
 
-Route::get('/', \App\Livewire\Landing::class)->name('home');
-Route::get('/catalog', \App\Livewire\Catalog::class)->name('catalog');
+Route::get('/', \App\Livewire\Catalog::class)->name('home');
 
 require __DIR__.'/auth.php';

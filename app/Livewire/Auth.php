@@ -18,7 +18,7 @@ class Auth extends Component
     public $loginId = '';
     public $loginPassword = '';
 
-    // Register Form
+    // Signup Form
     public $regNama = '';
     public $regUsername = '';
     public $regEmail = '';
@@ -34,6 +34,9 @@ class Auth extends Component
     {
         $this->tab = $tab;
         $this->resetValidation();
+        
+        $title = ($this->tab === 'signup' ? 'Signup' : 'Login') . ' - UMKM Kita';
+        $this->dispatch('update-title', title: $title);
     }
 
     public function login()
@@ -61,13 +64,13 @@ class Auth extends Component
         }
 
         if (FacadesAuth::attempt([$fieldType => $this->loginId, 'password' => $this->loginPassword])) {
-            return redirect()->to('/catalog');
+            return redirect()->to('/');
         }
 
         $this->addError('loginPassword', 'Password salah');
     }
 
-    public function register()
+    public function signup()
     {
         $this->validate([
             'regNama' => 'required|string|max:255',
@@ -87,11 +90,12 @@ class Auth extends Component
 
         FacadesAuth::login($user);
 
-        return redirect()->to('/catalog');
+        return redirect()->to('/');
     }
 
     public function render()
     {
-        return view('livewire.auth')->title('Login — UMKM Kita');
+        $title = ($this->tab === 'signup' ? 'Signup' : 'Login') . ' - UMKM Kita';
+        return view('livewire.auth')->title($title);
     }
 }
