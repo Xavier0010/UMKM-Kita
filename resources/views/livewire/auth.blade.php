@@ -173,13 +173,95 @@
                         @error('regPassword') <span style="color:red; font-size:12px;">{{ $message }}</span> @enderror
                     </div>
                     <div class="form-group">
+                        <label>Nomor WhatsApp</label>
+                        <input type="text" wire:model="regPhone" class="input-field" placeholder="Contoh: 08123456789" required>
+                        @error('regPhone') <span style="color:red; font-size:12px;">{{ $message }}</span> @enderror
+                    </div>
+                    <div class="form-group">
+                        <label>Alamat Lengkap</label>
+                        <textarea wire:model="regAddress" class="input-field" placeholder="Alamat pengiriman atau lokasi toko" required rows="3" style="resize: none;"></textarea>
+                        @error('regAddress') <span style="color:red; font-size:12px;">{{ $message }}</span> @enderror
+                    </div>
+                    <div class="form-group">
                         <label>Daftar sebagai</label>
-                        <select wire:model="regRole" class="select-field">
+                        <select wire:model.live="regRole" class="select-field">
                             <option value="buyer">Pembeli</option>
                             <option value="seller">Penjual</option>
                         </select>
                         @error('regRole') <span style="color:red; font-size:12px;">{{ $message }}</span> @enderror
                     </div>
+
+                    @if($regRole === 'seller')
+                    <div class="seller-details fade-in" style="background: #f1f5f9; padding: 20px; border-radius: 16px; margin-top: 10px; border: 1px dashed #cbd5e1;">
+                        <h3 style="font-size: 1.1rem; margin-top: 0; margin-bottom: 15px; color: #1e293b; display: flex; align-items: center; gap: 8px;">
+                            🏢 Informasi Toko
+                        </h3>
+                        
+                        <div class="form-group">
+                            <label>Nama Toko</label>
+                            <input type="text" wire:model="storeName" class="input-field" placeholder="Nama toko Anda">
+                            @error('storeName') <span style="color:red; font-size:12px;">{{ $message }}</span> @enderror
+                        </div>
+
+                        <div class="form-group">
+                            <label>Deskripsi Toko</label>
+                            <textarea wire:model="storeDescription" class="input-field" placeholder="Ceritakan tentang toko Anda..." rows="3"></textarea>
+                            @error('storeDescription') <span style="color:red; font-size:12px;">{{ $message }}</span> @enderror
+                        </div>
+
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                            <div class="form-group">
+                                <label>Telepon Toko</label>
+                                <input type="text" wire:model="storePhone" class="input-field" placeholder="0812...">
+                                @error('storePhone') <span style="color:red; font-size:12px;">{{ $message }}</span> @enderror
+                            </div>
+                            <div class="form-group">
+                                <label>WhatsApp Toko</label>
+                                <input type="text" wire:model="storeWA" class="input-field" placeholder="0812...">
+                                @error('storeWA') <span style="color:red; font-size:12px;">{{ $message }}</span> @enderror
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Kota</label>
+                            <input type="text" wire:model="storeCity" class="input-field" placeholder="Contoh: Sidoarjo">
+                            @error('storeCity') <span style="color:red; font-size:12px;">{{ $message }}</span> @enderror
+                        </div>
+
+                        <div class="form-group">
+                            <label>Alamat Lengkap Toko</label>
+                            <textarea wire:model="storeAddress" class="input-field" placeholder="Alamat fisik toko" rows="2"></textarea>
+                            @error('storeAddress') <span style="color:red; font-size:12px;">{{ $message }}</span> @enderror
+                        </div>
+
+                        <div class="form-group">
+                            <label>Logo Toko (Required)</label>
+                            <div style="display: flex; align-items: center; gap: 15px;">
+                                <div style="width: 60px; height: 60px; border-radius: 12px; background: #e2e8f0; overflow: hidden; display: flex; align-items: center; justify-content: center; border: 2px solid #fff;">
+                                    @if($storeLogo)
+                                        <img src="{{ $storeLogo->temporaryUrl() }}" style="width: 100%; height: 100%; object-fit: cover;">
+                                    @else
+                                        <span style="font-size: 20px;">🖼️</span>
+                                    @endif
+                                </div>
+                                <input type="file" wire:model="storeLogo" style="font-size: 12px;">
+                            </div>
+                            @error('storeLogo') <span style="color:red; font-size:12px;">{{ $message }}</span> @enderror
+                        </div>
+
+                        <div class="form-group">
+                            <label>Banner Toko (Optional)</label>
+                            <input type="file" wire:model="storeBanner" style="font-size: 12px; width: 100%;">
+                            @error('storeBanner') <span style="color:red; font-size:12px;">{{ $message }}</span> @enderror
+                        </div>
+
+                        <div class="form-group" style="margin-bottom: 0;">
+                            <label>QRIS Toko (Optional)</label>
+                            <input type="file" wire:model="storeQRIS" style="font-size: 12px; width: 100%;">
+                            @error('storeQRIS') <span style="color:red; font-size:12px;">{{ $message }}</span> @enderror
+                        </div>
+                    </div>
+                    @endif
                     <button type="submit" class="btn-submit btn-signup">
                         Sign Up
                     </button>

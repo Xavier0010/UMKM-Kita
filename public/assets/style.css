@@ -800,3 +800,5 @@ footer {
     .nav-actions { gap: 8px; }
     .user-details { display: none; }
 }
+
+button, .btn-pesan, .btn-outline, .btn-cta, .filter-btn, .search-btn, .nav-toggle, .btn-logout, a.btn-cta, a.btn-outline { cursor: pointer !important; }

@@ -4,12 +4,17 @@ namespace App\Livewire;
 
 use Livewire\Component;
 use Livewire\Attributes\Url;
+use Livewire\WithFileUploads;
 use Illuminate\Support\Facades\Auth as FacadesAuth;
 use App\Models\User;
+use App\Models\Store;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
 
 class Auth extends Component
 {
+    use WithFileUploads;
+    
     #[Url]
     public $tab = 'login';
     public $showPassword = false;
@@ -24,6 +29,19 @@ class Auth extends Component
     public $regEmail = '';
     public $regPassword = '';
     public $regRole = 'buyer';
+    public $regPhone = '';
+    public $regAddress = '';
+
+    // Store Details (For Seller)
+    public $storeName = '';
+    public $storeDescription = '';
+    public $storeLogo;
+    public $storeBanner;
+    public $storePhone = '';
+    public $storeWA = '';
+    public $storeAddress = '';
+    public $storeCity = '';
+    public $storeQRIS;
 
     public function togglePassword()
     {
@@ -64,7 +82,7 @@ class Auth extends Component
         }
 
         if (FacadesAuth::attempt([$fieldType => $this->loginId, 'password' => $this->loginPassword])) {
-            return redirect()->to('/');
+            return $this->redirectUser();
         }
 
         $this->addError('loginPassword', 'Password salah');
@@ -72,13 +90,31 @@ class Auth extends Component
 
     public function signup()
     {
-        $this->validate([
+        $rules = [
             'regNama' => 'required|string|max:255',
             'regUsername' => 'required|string|max:255|unique:users,username',
             'regEmail' => 'required|string|email|max:255|unique:users,email',
             'regPassword' => 'required|string|min:6',
             'regRole' => 'required|in:buyer,seller',
-        ]);
+            'regPhone' => 'required|string|max:20',
+            'regAddress' => 'required|string|max:500',
+        ];
+
+        if ($this->regRole === 'seller') {
+            $rules = array_merge($rules, [
+                'storeName' => 'required|string|max:255',
+                'storeDescription' => 'required|string|max:1000',
+                'storePhone' => 'required|string|max:20',
+                'storeWA' => 'required|string|max:20',
+                'storeAddress' => 'required|string|max:500',
+                'storeCity' => 'required|string|max:255',
+                'storeLogo' => 'required|image|max:1024', // 1MB max
+                'storeBanner' => 'nullable|image|max:2048', // 2MB max
+                'storeQRIS' => 'nullable|image|max:1024',
+            ]);
+        }
+
+        $this->validate($rules);
 
         $user = User::create([
             'name' => $this->regNama,
@@ -86,10 +122,52 @@ class Auth extends Component
             'email' => $this->regEmail,
             'password' => Hash::make($this->regPassword),
             'role' => $this->regRole,
+            'phone' => $this->regPhone,
+            'address' => $this->regAddress,
         ]);
+
+        if ($this->regRole === 'seller') {
+            $logoPath = $this->storeLogo ? $this->storeLogo->store('stores/logos', 'public') : null;
+            $bannerPath = $this->storeBanner ? $this->storeBanner->store('stores/banners', 'public') : null;
+            $qrisPath = $this->storeQRIS ? $this->storeQRIS->store('stores/qris', 'public') : null;
+
+            Store::create([
+                'user_id' => $user->id,
+                'name' => $this->storeName,
+                'slug' => Str::slug($this->storeName) . '-' . Str::random(5),
+                'description' => $this->storeDescription,
+                'logo' => $logoPath,
+                'banner' => $bannerPath,
+                'phone' => $this->storePhone,
+                'whatsapp' => $this->storeWA,
+                'address' => $this->storeAddress,
+                'city' => $this->storeCity,
+                'qris_image' => $qrisPath,
+                'status' => 'pending',
+            ]);
+        }
 
         FacadesAuth::login($user);
 
+        return $this->redirectUser();
+    }
+
+    private function redirectUser()
+    {
+        $user = FacadesAuth::user();
+        
+        if ($user->role === 'admin') {
+            return redirect()->route('admin.dashboard');
+        }
+        
+        if ($user->role === 'seller') {
+            $store = $user->store;
+            if ($store && $store->status === 'approved') {
+                return redirect()->route('seller.dashboard');
+            }
+            return redirect()->to('/')->with('message', 'Pendaftaran berhasil! Akun penjual Anda sedang menunggu persetujuan admin.');
+        }
+        
         return redirect()->to('/');
     }
 

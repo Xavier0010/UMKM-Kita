@@ -5,6 +5,8 @@ namespace App\Livewire;
 use Livewire\Component;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
+use App\Models\Wishlist;
+use App\Models\Order;
 
 class Catalog extends Component
 {
@@ -15,6 +17,23 @@ class Catalog extends Component
     public function filterKategori($kategori)
     {
         $this->kategoriFilter = $kategori;
+    }
+
+    public function toggleWishlist($productId)
+    {
+        if (!Auth::check()) {
+            return redirect()->route('authentication', ['tab' => 'login']);
+        }
+
+        $wishlist = Wishlist::where('user_id', Auth::id())->where('product_id', $productId)->first();
+        if ($wishlist) {
+            $wishlist->delete();
+        } else {
+            Wishlist::create([
+                'user_id' => Auth::id(),
+                'product_id' => $productId
+            ]);
+        }
     }
 
     public function pesan($productId, $namaProduk, $jumlah = 1)
@@ -58,23 +77,34 @@ class Catalog extends Component
         }
 
         $all_produk = $query->orderBy('products.id', 'desc')->get()->map(function($p) {
-            $p->image_url = $p->main_image ? asset('foto_produk/'.$p->main_image) : 'https://placehold.co/400x220/e2e8f0/64748b?text=Foto+Produk';
+            $p->image_url = $p->main_image ? asset('storage/'.$p->main_image) : 'https://placehold.co/400x220/e2e8f0/64748b?text=Foto+Produk';
             return $p;
         });
         $kategori_list = DB::table('categories')->pluck('name');
         $rekomendasi = DB::table('products')->inRandomOrder()->limit(3)->get()->map(function($p) {
-            $p->image_url = $p->main_image ? asset('foto_produk/'.$p->main_image) : 'https://placehold.co/400x220/e2e8f0/64748b?text=Foto+Produk';
+            $p->image_url = $p->main_image ? asset('storage/'.$p->main_image) : 'https://placehold.co/400x220/e2e8f0/64748b?text=Foto+Produk';
             return $p;
         });
         $total_produk = DB::table('products')->count();
         $user = Auth::user() ?? (object) ['name' => 'Guest', 'role' => 'user'];
+
+        // Compute summary values for the authenticated user
+        $totalPesanan = 0;
+        $totalWishlist = 0;
+
+        if (Auth::check()) {
+            $totalPesanan = Order::where('user_id', Auth::id())->count();
+            $totalWishlist = Wishlist::where('user_id', Auth::id())->count();
+        }
 
         return view('livewire.catalog', [
             'all_produk' => $all_produk,
             'kategori_list' => $kategori_list,
             'rekomendasi' => $rekomendasi,
             'total_produk' => $total_produk,
-            'user' => $user
+            'user' => $user,
+            'totalPesanan' => $totalPesanan,
+            'totalWishlist' => $totalWishlist,
         ])->title('Katalog — UMKM Kita');
     }
 }
